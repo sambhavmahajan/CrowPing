@@ -41,7 +41,7 @@ public class AppUserService implements UserDetailsService {
         this.pingUrlRepo = pingUrlRepo;
         this.pingLogRepo = pingLogRepo;
     }
-    private void passwordValidator(AppUserDTO userDTO) throws  RuntimeException {
+    public void passwordValidator(AppUserDTO userDTO) throws  RuntimeException {
         if(userDTO.getEmail() == null || userDTO.getPassword() == null){
             throw new EmailOrPasswordEmptyException();
         }
@@ -101,7 +101,7 @@ public class AppUserService implements UserDetailsService {
         userRepo.delete(userRepo.findByEmail(userDTO.getEmail()).orElseThrow(()->new UsernameNotFoundException(userDTO.getEmail())));
     }
     @Transactional
-    @CachePut(value="urls", key="#auth.getName()")
+    @CachePut(value="urls", key="#appUsr.get().username")
     public List<PingUrl> addPingUrl(Optional<AppUser> appUsr, PingDTO dto) throws RuntimeException {
         if(appUsr.isEmpty()) {
             throw new RuntimeException("Something bad happened! Relogin required");
@@ -149,5 +149,9 @@ public class AppUserService implements UserDetailsService {
     @Cacheable(value="logs", key="#email")
     public List<PingLog> getPingLogsByEmail(String email) throws RuntimeException {
         return pingLogRepo.findAllByOwnerEmail(email);
+    }
+    @CacheEvict(value="users", key="#appUser.email")
+    public void resaveUser(AppUser appUser) {
+        userRepo.save(appUser);
     }
 }
