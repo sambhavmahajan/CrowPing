@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:th="https://www.thymeleaf.org">
+<body>
+<header th:fragment="header">
+    <nav class="navbar navbar-light bg-light">
+    <a th:href="@{/home}">Home</a>
+    <span sec:authorize="isAuthenticated()">
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/logout}">Logout</a>
+    </span>
+    <span sec:authorize="!isAuthenticated()">
+        <a th:href="@{/login}">Login</a>
+        <a th:href="@{/register}">Register</a>
+    </span>
+    </nav>
+</header>
+</body>
+</html>

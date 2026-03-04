@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      xmlns:th="https://www.thymeleaf.org">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body>
+<div th:replace="~{fragments.html :: header}"></div>
+<th:block th:if="${error != null}">
+    <p th:text="${error}"></p>
+</th:block>
+<form action="/dashboard/createurl" th:object="${UrlDTO}" th:method="POST">
+    <label for="new ping text"></label>
+    <input th:field="*{url}" placeholder="url" id="new ping text" name="url"/>
+    <input type="submit" value="Create new Ping"/>
+</form>
+<div th:each="url : ${pingUrls}">
+    <form method="post" th:action="@{/dashboard/deleteurl}">
+        <input type="hidden" name="_method" value="DELETE"/>
+        <input type="hidden" name="id" th:value="${url.id}"/>
+        <input type="text" th:value="${url.url}" readonly/>
+        <input type="submit" value="Delete Url"/>
+    </form>
+</div>
+<h2>Logs</h2>
+<table>
+    <tr>
+        <th>url</th>
+        <th>Response</th>
+        <th>Date and Time</th>
+    </tr>
+    <tbody th:each="log : ${logs}">
+        <tr>
+            <td th:text="${log.getUrl()}"/>
+            <td th:text="${log.getMessage()}"/>
+            <td th:text="${log.getTimestamp()}"/>
+        </tr>
+    </tbody>
+</table>
+</body>
+</html>
