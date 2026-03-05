@@ -12,6 +12,8 @@ import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,14 +34,16 @@ public class AppUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final PingUrlRepo pingUrlRepo;
     private final PingLogRepo pingLogRepo;
+    private final CacheManager cacheManager;
     @Value(value = "${app.pinglimit}")
     private int pingLimit;
-    public AppUserService(AppUserRepo userRepo, PingService pingService, PasswordEncoder passwordEncoder, PingUrlRepo pingUrlRepo, PingLogRepo pingLogRepo) {
+    public AppUserService(AppUserRepo userRepo, PingService pingService, PasswordEncoder passwordEncoder, PingUrlRepo pingUrlRepo, PingLogRepo pingLogRepo, CacheManager cacheManager) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.pingService = pingService;
         this.pingUrlRepo = pingUrlRepo;
         this.pingLogRepo = pingLogRepo;
+        this.cacheManager = cacheManager;
     }
     public void passwordValidator(AppUserDTO userDTO) throws  RuntimeException {
         if(userDTO.getEmail() == null || userDTO.getPassword() == null){
@@ -68,7 +72,6 @@ public class AppUserService implements UserDetailsService {
         }
     }
     @Transactional
-    @CachePut(value="users", key="#userDTO.email")
     public AppUser registerUser(AppUserDTO userDTO) throws RuntimeException {
         if(userRepo.findByEmail(userDTO.getEmail()).isPresent()){
             throw new UsernameAlreadyExistsException(userDTO.getEmail());
@@ -78,6 +81,8 @@ public class AppUserService implements UserDetailsService {
         userDTO.setRole("ROLE_" + userDTO.getRole());
         AppUser appUser = new AppUser(userDTO);
         userRepo.save(appUser);
+        Cache cache = cacheManager.getCache("users");
+        if(cache != null) cache.put(appUser.getEmail(), appUser);
         return appUser;
     }
     private void userNameMatches(Authentication auth, AppUserDTO userDTO) throws RuntimeException {
@@ -87,35 +92,37 @@ public class AppUserService implements UserDetailsService {
         }
     }
     @Transactional
-    @CacheEvict(value="users", key="#auth.getName()")
     public void updatePassword(Authentication auth, AppUserDTO userDTO) throws RuntimeException {
+        Cache cache = cacheManager.getCache("users");
+        if(cache != null) cache.evict(auth.getName());
         userNameMatches(auth,userDTO);
         passwordValidator(userDTO);
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userRepo.save(new AppUser(userDTO));
     }
     @Transactional
-    @CacheEvict(value="users", key="#auth.getName()")
     public void deleteUser(Authentication auth, AppUserDTO userDTO) throws RuntimeException {
+        Cache cache = cacheManager.getCache("users");
+        if(cache != null) cache.evict(auth.getName());
         userNameMatches(auth, userDTO);
         userRepo.delete(userRepo.findByEmail(userDTO.getEmail()).orElseThrow(()->new UsernameNotFoundException(userDTO.getEmail())));
     }
     @Transactional
-    @CacheEvict(value="urls", key="#appUsr.get().username")
-    public void addPingUrl(Optional<AppUser> appUsr, PingDTO dto) throws RuntimeException {
+    public void addPingUrl(Authentication auth, Optional<AppUser> appUsr, PingDTO dto) throws RuntimeException {
         if(appUsr.isEmpty()) {
             throw new RuntimeException("Something bad happened! Relogin required");
         }
         if(appUsr.get().getCountUrl() >= pingLimit) {
             throw new MaxPingLimitExceededException();
         }
+        Cache cache = cacheManager.getCache("urls");
+        if(cache != null) cache.evict(auth.getName());
         PingUrl pingUrl = new PingUrl(dto, appUsr.get().getEmail());
         pingService.add(pingUrl);
         appUsr.get().setCountUrl(appUsr.get().getCountUrl() + 1);
         userRepo.save(appUsr.get());
     }
     @Transactional
-    @CacheEvict(value="urls", key="#auth.getName()")
     public void deletePingUrl(Authentication auth, PingDTO dto) throws RuntimeException {
         Optional<AppUser> appUsr = userRepo.findByEmail(auth.getName());
         if(appUsr.isEmpty()) {
@@ -128,6 +135,8 @@ public class AppUserService implements UserDetailsService {
         if(!url.get().getOwnerEmail().equals(appUsr.get().getEmail())) {
             throw new OwnerMismatchException();
         }
+        Cache cache = cacheManager.getCache("urls");
+        if(cache != null) cache.evict(auth.getName());
         appUsr.get().setCountUrl(appUsr.get().getCountUrl() - 1);
         url.get().setActive(false);
         userRepo.save(appUsr.get());

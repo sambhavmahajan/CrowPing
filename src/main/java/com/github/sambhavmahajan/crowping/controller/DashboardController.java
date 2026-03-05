@@ -47,7 +47,7 @@ public class DashboardController {
         pingUrl.setUrl(urlDTO.getUrl());
         try {
             appUserService.addPingUrl(
-                    Optional.of((AppUser) appUserService.loadUserByUsername(authentication.getName())), pingUrl);
+                    authentication, Optional.of((AppUser) appUserService.loadUserByUsername(authentication.getName())), pingUrl);
         } catch (MaxPingLimitExceededException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
