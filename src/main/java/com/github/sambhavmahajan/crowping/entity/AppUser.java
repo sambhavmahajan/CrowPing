@@ -26,11 +26,11 @@ public class AppUser implements UserDetails {
     private String role;
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PingUrl> pingUrls;
+    private boolean enabled = false;
     public AppUser(String email, String password, String role) {
         this.email = email;
         this.password = password;
         this.role = role;
-
     }
     public AppUser(AppUserDTO userDTO) {
         this.email = userDTO.getEmail();
@@ -50,5 +50,9 @@ public class AppUser implements UserDetails {
     @Override
     public @NonNull String getUsername() {
         return this.email;
+    }
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
     }
 }

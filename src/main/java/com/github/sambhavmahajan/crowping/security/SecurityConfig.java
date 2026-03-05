@@ -18,7 +18,7 @@ public class SecurityConfig {
                         csrf -> csrf.disable()
                 ).authorizeHttpRequests(
                         authorize -> authorize.
-                                requestMatchers("/home").permitAll().
+                                requestMatchers("/home","/ping", "/verify/**").permitAll().
                                 requestMatchers("/login", "/register").anonymous()
                                 .anyRequest().authenticated()
                 ).formLogin(

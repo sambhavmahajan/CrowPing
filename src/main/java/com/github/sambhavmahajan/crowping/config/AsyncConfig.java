@@ -8,6 +8,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Configuration
 @EnableAsync
@@ -35,5 +37,9 @@ public class AsyncConfig {
         executor.setQueueCapacity(queueCapacity);
         executor.initialize();
         return executor;
+    }
+    @Bean
+    public ExecutorService executorService() {
+        return Executors.newFixedThreadPool(2);
     }
 }

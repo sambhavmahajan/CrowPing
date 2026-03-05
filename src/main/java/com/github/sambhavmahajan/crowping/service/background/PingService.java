@@ -27,12 +27,12 @@ public class PingService {
     private final ExecutorService exe;
     @Value("${app.nthreads}")
     private int appNThreads;
-    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo) {
+    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe) {
         List<PingUrl> pings = repo.findAllByActiveTrue();
         pingUrls = new CopyOnWriteArrayList<>(pings);
         this.restTemplate = restTemplate;
         this.pingLogRepo = pingLogRepo;
-        this.exe = Executors.newFixedThreadPool(appNThreads);
+        this.exe = exe;
     }
     @Scheduled(fixedDelayString = "${app.ping.fixDelay}")
     public void pingNow() {
