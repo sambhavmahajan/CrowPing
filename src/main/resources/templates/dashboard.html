@@ -27,11 +27,13 @@
 </div>
 <h2>Logs</h2>
 <table>
-    <tr>
-        <th>url</th>
-        <th>Response</th>
-        <th>Date and Time</th>
-    </tr>
+    <thead>
+        <tr>
+            <th>url</th>
+            <th>Response</th>
+            <th>Date and Time</th>
+        </tr>
+    </thead>
     <tbody th:each="log : ${logs}">
         <tr>
             <td th:text="${log.getUrl()}"/>

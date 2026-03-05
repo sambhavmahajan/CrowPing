@@ -6,6 +6,8 @@ import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -29,7 +31,9 @@ public class PingService {
     @Value("${app.nthreads}")
     private int appNThreads;
     private final ConcurrentHashMap<Long, Boolean> previousPingFailed = new ConcurrentHashMap<>();
-    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo) {
+    private final CacheManager cacheManager;
+    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
+        this.cacheManager = cacheManager;
         List<PingUrl> pings = repo.findAllByActiveTrue();
         pingUrls = new CopyOnWriteArrayList<>(pings);
         this.restTemplate = restTemplate;
@@ -45,7 +49,6 @@ public class PingService {
         }
     }
     @Async
-    @CacheEvict(value="logs", key="#url.owner.email", condition = "#url.active")
     public void ping(PingUrl url) {
         if(!url.isActive()) return;
         String response = restTemplate.getForEntity(url.getUrl(), String.class).getStatusCode().toString();
@@ -55,6 +58,8 @@ public class PingService {
         pingLog.setTimestamp(now);
         pingLog.setMessage(response);
         pingLog.setOwnerEmail(url.getOwnerEmail());
+        Cache cache = cacheManager.getCache("logs");
+        if(cache != null) cache.evict(url.getOwnerEmail());
         exe.submit(() -> {
             Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwnerEmail(), pingLog.getUrl());
             if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
