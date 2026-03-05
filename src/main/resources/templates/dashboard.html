@@ -25,22 +25,24 @@
         <input type="submit" value="Delete Url"/>
     </form>
 </div>
-<h2>Logs</h2>
-<table>
-    <thead>
-        <tr>
-            <th>url</th>
-            <th>Response</th>
-            <th>Date and Time</th>
-        </tr>
-    </thead>
-    <tbody th:each="log : ${logs}">
-        <tr>
-            <td th:text="${log.getUrl()}"/>
-            <td th:text="${log.getMessage()}"/>
-            <td th:text="${log.getTimestamp()}"/>
-        </tr>
-    </tbody>
-</table>
+<div class="container">
+    <h2>Logs</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>url</th>
+                <th>Response</th>
+                <th>Date and Time</th>
+            </tr>
+        </thead>
+        <tbody th:each="log : ${logs}">
+            <tr>
+                <td th:text="${log.getUrl()}"/>
+                <td th:text="${log.getMessage()}"/>
+                <td th:text="${log.getTimestamp()}"/>
+            </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

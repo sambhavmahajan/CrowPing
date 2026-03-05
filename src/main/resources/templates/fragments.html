@@ -2,19 +2,19 @@
 <html xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       xmlns:th="https://www.thymeleaf.org">
 <body>
-<header th:fragment="header">
-    <nav class="navbar navbar-light bg-light">
-    <a th:href="@{/home}">Home</a>
-    <span sec:authorize="isAuthenticated()">
-        <a th:href="@{/dashboard}">Dashboard</a>
-        <a th:href="@{/dashboard/changepassword}">Change Password</a>
-        <a th:href="@{/logout}">Logout</a>
-    </span>
-    <span sec:authorize="!isAuthenticated()">
-        <a th:href="@{/login}">Login</a>
-        <a th:href="@{/register}">Register</a>
-    </span>
-    </nav>
-</header>
+<div th:fragment="header">
+    <div class="container">
+        <header class="d-flex justify-content-center py-3">
+            <ul class="nav nav-pills">
+                <li class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/home}">Home</a></li>
+                <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/dashboard}">Dashboard</a></li>
+                <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/dashboard/changepassword}">Change Password</a></li>
+                <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/logout}">Logout</a></li>
+                <li sec:authorize="!isAuthenticated()" class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/login}">Login</a></li>
+                <li sec:authorize="!isAuthenticated()" class="nav-item"><a class="nav-link" aria-current="page" th:href="@{/register}">Register</a></li>
+            </ul>
+        </header>
+    </div>
+</div>
 </body>
 </html>
