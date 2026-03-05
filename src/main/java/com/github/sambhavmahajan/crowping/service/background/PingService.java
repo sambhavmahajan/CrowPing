@@ -3,6 +3,7 @@ import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,17 +14,24 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class PingService {
     private final CopyOnWriteArrayList<PingUrl> pingUrls;
     private final PingLogRepo pingLogRepo;
     private final RestTemplate restTemplate;
+    private final ExecutorService exe;
+    @Value("${app.nthreads}")
+    private int appNThreads;
     public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo) {
         List<PingUrl> pings = repo.findAllByActiveTrue();
         pingUrls = new CopyOnWriteArrayList<>(pings);
         this.restTemplate = restTemplate;
         this.pingLogRepo = pingLogRepo;
+        this.exe = Executors.newFixedThreadPool(appNThreads);
     }
     @Scheduled(fixedDelayString = "${app.ping.fixDelay}")
     public void pingNow() {
@@ -44,7 +52,7 @@ public class PingService {
         pingLog.setOwner(url.getOwner());
         Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwner().getEmail(), pingLog.getUrl());
         if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
-        pingLogRepo.save(pingLog);
+        exe.submit(() -> pingLogRepo.save(pingLog));
     }
     public void add(PingUrl url) {
         pingUrls.add(url);
