@@ -24,13 +24,13 @@ public class AppUser implements UserDetails {
     private String email;
     private String password;
     private String role;
-    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<PingUrl> pingUrls;
+    private int countUrl;
     private boolean enabled = false;
     public AppUser(String email, String password, String role) {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.countUrl = 0;
     }
     public AppUser(AppUserDTO userDTO) {
         this.email = userDTO.getEmail();

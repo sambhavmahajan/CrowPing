@@ -12,13 +12,11 @@ public class PingUrl {
     @Id
     @GeneratedValue
     private long id;
-    @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private AppUser owner;
+    private String ownerEmail;
     private String url;
     private boolean active = true;
-    public PingUrl(PingDTO dto, AppUser owner) {
+    public PingUrl(PingDTO dto, String ownerEmail) {
         this.url = dto.getUrl();
-        this.owner = owner;
+        this.ownerEmail =  ownerEmail;
     }
 }

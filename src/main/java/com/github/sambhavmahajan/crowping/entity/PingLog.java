@@ -19,6 +19,5 @@ public class PingLog {
     @Column(columnDefinition = "TEXT")
     private String url;
     private LocalDateTime timestamp;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private AppUser owner;
+    private String ownerEmail;
 }

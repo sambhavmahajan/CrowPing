@@ -101,23 +101,22 @@ public class AppUserService implements UserDetailsService {
         userRepo.delete(userRepo.findByEmail(userDTO.getEmail()).orElseThrow(()->new UsernameNotFoundException(userDTO.getEmail())));
     }
     @Transactional
-    @CachePut(value="urls", key="#appUsr.get().username")
-    public List<PingUrl> addPingUrl(Optional<AppUser> appUsr, PingDTO dto) throws RuntimeException {
+    @CacheEvict(value="urls", key="#appUsr.get().username")
+    public void addPingUrl(Optional<AppUser> appUsr, PingDTO dto) throws RuntimeException {
         if(appUsr.isEmpty()) {
             throw new RuntimeException("Something bad happened! Relogin required");
         }
-        if(appUsr.get().getPingUrls().size() >= pingLimit) {
+        if(appUsr.get().getCountUrl() >= pingLimit) {
             throw new MaxPingLimitExceededException();
         }
-        PingUrl pingUrl = new PingUrl(dto, appUsr.get());
-        appUsr.get().getPingUrls().add(pingUrl);
-        userRepo.save(appUsr.get());
+        PingUrl pingUrl = new PingUrl(dto, appUsr.get().getEmail());
         pingService.add(pingUrl);
-        return appUsr.get().getPingUrls();
+        appUsr.get().setCountUrl(appUsr.get().getCountUrl() + 1);
+        userRepo.save(appUsr.get());
     }
     @Transactional
-    @CachePut(value="urls", key="#auth.getName()")
-    public List<PingUrl> deletePingUrl(Authentication auth, PingDTO dto) throws RuntimeException {
+    @CacheEvict(value="urls", key="#auth.getName()")
+    public void deletePingUrl(Authentication auth, PingDTO dto) throws RuntimeException {
         Optional<AppUser> appUsr = userRepo.findByEmail(auth.getName());
         if(appUsr.isEmpty()) {
             throw new RuntimeException("Something bad happened! Relogin required");
@@ -126,20 +125,17 @@ public class AppUserService implements UserDetailsService {
         if(url.isEmpty()) {
             throw new NoSuchPingUrlExistsException();
         }
-        if(url.get().getOwner() !=  appUsr.get()) {
+        if(!url.get().getOwnerEmail().equals(appUsr.get().getEmail())) {
             throw new OwnerMismatchException();
         }
+        appUsr.get().setCountUrl(appUsr.get().getCountUrl() - 1);
         url.get().setActive(false);
-        pingUrlRepo.delete(url.get());
-        appUsr.get().getPingUrls().remove(url.get());
         userRepo.save(appUsr.get());
-        return appUsr.get().getPingUrls();
+        pingUrlRepo.delete(url.get());
     }
     @Cacheable(value="urls", key="#email")
     public List<PingUrl> getPingUrlsByEmail(String email) throws RuntimeException {
-        return pingUrlRepo.findAllByOwner(
-                userRepo.findByEmail(email).
-                        orElseThrow(()->new UsernameNotFoundException(email)));
+        return pingUrlRepo.findAllByOwnerEmail(email);
     }
     @Override
     @Cacheable(value="users", key="#username")

@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface PingUrlRepo extends JpaRepository<PingUrl, Long> {
     List<PingUrl> findAllByActiveTrue();
-    List<PingUrl> findAllByOwner(AppUser owner);
+    List<PingUrl> findAllByOwnerEmail(String email);
+    int countByOwnerEmail(String email);
 }

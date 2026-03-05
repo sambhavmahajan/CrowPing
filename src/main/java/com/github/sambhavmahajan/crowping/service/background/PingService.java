@@ -1,4 +1,5 @@
 package com.github.sambhavmahajan.crowping.service.background;
+import com.github.sambhavmahajan.crowping.email.EmailService;
 import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
@@ -6,6 +7,7 @@ import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Service
 public class PingService {
@@ -25,14 +24,19 @@ public class PingService {
     private final PingLogRepo pingLogRepo;
     private final RestTemplate restTemplate;
     private final ExecutorService exe;
+    private final EmailService emailService;
+    private final PingUrlRepo pingUrlRepo;
     @Value("${app.nthreads}")
     private int appNThreads;
-    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe) {
+    private final ConcurrentHashMap<Long, Boolean> previousPingFailed = new ConcurrentHashMap<>();
+    public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo) {
         List<PingUrl> pings = repo.findAllByActiveTrue();
         pingUrls = new CopyOnWriteArrayList<>(pings);
         this.restTemplate = restTemplate;
         this.pingLogRepo = pingLogRepo;
         this.exe = exe;
+        this.emailService = emailService;
+        this.pingUrlRepo = pingUrlRepo;
     }
     @Scheduled(fixedDelayString = "${app.ping.fixDelay}")
     public void pingNow() {
@@ -50,11 +54,19 @@ public class PingService {
         pingLog.setUrl(url.getUrl());
         pingLog.setTimestamp(now);
         pingLog.setMessage(response);
-        pingLog.setOwner(url.getOwner());
+        pingLog.setOwnerEmail(url.getOwnerEmail());
         exe.submit(() -> {
-            Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwner().getEmail(), pingLog.getUrl());
+            Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwnerEmail(), pingLog.getUrl());
             if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
             pingLogRepo.save(pingLog);
+            String log = pingLog.getMessage();
+            char ch = pingLog.getMessage().charAt('0');
+            if(previousPingFailed.containsKey(url.getId()) && previousPingFailed.get(url.getId()) == true && !(ch == '5' || ch == '4')) {
+                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Up " + log, pingLog.getUrl());
+            } else if(ch == '5' || ch == '4') {
+                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Down " + log, pingLog.getUrl());
+            }
+            previousPingFailed.put(url.getId(), (ch == '5' || ch == '4'));
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -64,6 +76,9 @@ public class PingService {
     }
     public void add(PingUrl url) {
         pingUrls.add(url);
+        exe.submit(() -> {
+           pingUrlRepo.save(url);
+        });
     }
     @PreDestroy
     public void stop() {

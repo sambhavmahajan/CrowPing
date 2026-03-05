@@ -59,7 +59,7 @@ public class DashboardController {
         AppUser usr = (AppUser) appUserService.loadUserByUsername(authentication.getName());
         if(url == null) {
             redirectAttributes.addFlashAttribute("error", "PingUrl not found");
-        }else if(url.getOwner().equals(usr)) {
+        }else if(url.getOwnerEmail().equals(usr.getEmail())) {
             redirectAttributes.addFlashAttribute("error", "PingUrl owner not the same");
         } else pingUrlRepo.delete(url);
         return "redirect:/dashboard";
