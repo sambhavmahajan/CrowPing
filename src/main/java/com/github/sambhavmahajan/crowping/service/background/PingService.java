@@ -51,8 +51,8 @@ public class PingService {
         pingLog.setTimestamp(now);
         pingLog.setMessage(response);
         pingLog.setOwner(url.getOwner());
-        Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwner().getEmail(), pingLog.getUrl());
         exe.submit(() -> {
+            Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwner().getEmail(), pingLog.getUrl());
             if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
             pingLogRepo.save(pingLog);
             try {
