@@ -3,6 +3,7 @@ import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
@@ -54,9 +55,18 @@ public class PingService {
         exe.submit(() -> {
             if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
             pingLogRepo.save(pingLog);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
         });
     }
     public void add(PingUrl url) {
         pingUrls.add(url);
+    }
+    @PreDestroy
+    public void stop() {
+        exe.shutdown();
     }
 }
