@@ -144,7 +144,7 @@ public class AppUserService implements UserDetailsService {
         if(cache1 != null) cache1.put(auth.getName(), appUsr.get());
         url.get().setActive(false);
         userRepo.save(appUsr.get());
-        pingUrlRepo.delete(url.get());
+        pingUrlRepo.deleteById(url.get().getId());
     }
     @Cacheable(value="urls", key="#email")
     public List<PingUrl> getPingUrlsByEmail(String email) throws RuntimeException {
