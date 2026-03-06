@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21 as build
+FROM maven:3.9.5-eclipse-temurin-21 AS build
 LABEL author=sambhavmahajan
 WORKDIR /app
 COPY . .
