@@ -33,6 +33,8 @@ public class PingService {
     private final ConcurrentHashMap<Long, Boolean> previousPingFailed = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private LocalDateTime nextTime;
+    @Value("${app.baseurl}")
+    private String baseUrl;
     public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         List<PingUrl> pings = repo.findAllByActiveTrue();
@@ -69,9 +71,9 @@ public class PingService {
             String log = pingLog.getMessage();
             char ch = pingLog.getMessage().charAt('0');
             if(previousPingFailed.containsKey(url.getId()) && previousPingFailed.get(url.getId()) == true && !(ch == '5' || ch == '4')) {
-                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Up " + log, pingLog.getUrl());
+                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Up " + log, baseUrl + "/verify/" + pingLog.getUrl());
             } else if(ch == '5' || ch == '4') {
-                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Down " + log, pingLog.getUrl());
+                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Down " + log, baseUrl + "/verify/" + pingLog.getUrl());
             }
             previousPingFailed.put(url.getId(), (ch == '5' || ch == '4'));
             try {
