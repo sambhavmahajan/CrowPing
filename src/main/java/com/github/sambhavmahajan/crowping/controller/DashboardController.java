@@ -56,12 +56,18 @@ public class DashboardController {
     @DeleteMapping("/deleteurl")
     public String deleteUrl(Authentication authentication, @RequestParam long id, Model model, RedirectAttributes redirectAttributes) {
         PingUrl url = pingUrlRepo.findById(id).orElse(null);
-        AppUser usr = (AppUser) appUserService.loadUserByUsername(authentication.getName());
         if(url == null) {
             redirectAttributes.addFlashAttribute("error", "PingUrl not found");
-        }else if(url.getOwnerEmail().equals(usr.getEmail())) {
+        }else if(!url.getOwnerEmail().equals(authentication.getName())) {
             redirectAttributes.addFlashAttribute("error", "PingUrl owner not the same");
-        } else pingUrlRepo.delete(url);
+        } else {
+            PingDTO pingUrl = new PingDTO();
+            pingUrl.setUrl(url.getUrl());
+            pingUrl.setId(url.getId());
+            appUserService.deletePingUrl(
+                    authentication, pingUrl
+            );
+        }
         return "redirect:/dashboard";
     }
     @GetMapping("/changepassword")

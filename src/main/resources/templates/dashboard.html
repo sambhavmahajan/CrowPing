@@ -21,25 +21,160 @@
     <form method="post" th:action="@{/dashboard/deleteurl}">
         <input type="hidden" name="_method" value="DELETE"/>
         <input type="hidden" name="id" th:value="${url.id}"/>
-        <input type="text" th:value="${url.url}" readonly/>
-        <input type="submit" value="Delete Url"/>
+        <label th:text="${url.url}" />
+        <button type="submit" class="icon-btn-1 danger" aria-label="Delete item">
+            <svg aria-hidden="true" height="24" width="24" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+        </button>
     </form>
 </div>
-<div class="container">
+<style>
+    /* This container provides the light gray background for the cards to sit on. */
+    .card-table-container {
+        background-color: #f4f7f9;
+        padding: 20px;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        border-radius: 8px;
+    }
+    .card-like-table {
+        width: 100%;
+        /* Key to creating the gaps between rows */
+        border-collapse: separate;
+        border-spacing: 0 10px; /* 0 horizontal, 10px vertical spacing */
+    }
+
+    /* Visually hide the table header, but keep it for screen readers. */
+    .card-like-table thead {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+    .card-like-table tbody tr {
+        /* Each row acts as a card container */
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border-radius: 6px;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .card-like-table tbody tr:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        cursor: pointer;
+    }
+
+    /* Style the cells within the card-row */
+    .card-like-table td {
+        padding: 15px 20px;
+    }
+    /* Apply rounded corners to the first and last cell of each row */
+    .card-like-table td:first-child {
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+    }
+    .card-like-table td:last-child {
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+        text-align: right; /* Often the last cell contains actions or status */
+    }
+
+    .card-like-table .task-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .card-like-table .project-name {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+    }
+
+    .card-like-table .due-date {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+</style>
+<style>
+    /*
+     Component: Icon-Only Buttons
+     Description: A set of accessible, compact buttons for common UI actions.
+    */
+
+    :root {
+        --icon-btn-size: 44px; /* A good minimum size for touch targets */
+        --icon-btn-bg: transparent;
+        --icon-btn-bg-hover: #e9ecef;
+        --icon-btn-icon-color: #495057;
+        --icon-btn-icon-color-danger: #dc3545;
+        --icon-btn-focus-outline: #007bff;
+    }
+
+    .icon-btn-container-1 {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .icon-btn-1 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--icon-btn-size);
+        height: var(--icon-btn-size);
+
+        color: var(--icon-btn-icon-color);
+        background-color: var(--icon-btn-bg);
+
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        text-decoration: none;
+
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .icon-btn-1 svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+    }
+
+    .icon-btn-1:hover {
+        background-color: var(--icon-btn-bg-hover);
+    }
+
+    /* --- Modifier for a 'danger' action --- */
+    .icon-btn-1.danger:hover {
+        color: var(--icon-btn-icon-color-danger);
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .icon-btn-1:focus-visible {
+        outline: 2px solid var(--icon-btn-focus-outline);
+        outline-offset: 2px;
+    }
+</style>
+<div class="card-table-container">
     <h2>Logs</h2>
-    <table>
+    <table class="card-like-table">
         <thead>
             <tr>
-                <th>url</th>
-                <th>Response</th>
-                <th>Date and Time</th>
+                <th scope="col">url</th>
+                <th scope="col">Response</th>
+                <th scope="col">Date and Time</th>
             </tr>
         </thead>
-        <tbody th:each="log : ${logs}">
-            <tr>
-                <td th:text="${log.getUrl()}"/>
-                <td th:text="${log.getMessage()}"/>
-                <td th:text="${log.getTimestamp()}"/>
+        <tbody>
+            <tr th:each="log : ${logs}">
+                <td><span class="due-date" th:text="${log.getUrl()}"></span></td>
+                <td><span class="due-date" th:text="${log.getMessage()}"></span></td>
+                <td><span class="due-date" th:text="${log.getTimestamp()}"></span></td>
             </tr>
         </tbody>
     </table>

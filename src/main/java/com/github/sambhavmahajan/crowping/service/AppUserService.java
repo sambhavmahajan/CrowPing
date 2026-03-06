@@ -120,6 +120,8 @@ public class AppUserService implements UserDetailsService {
         PingUrl pingUrl = new PingUrl(dto, appUsr.get().getEmail());
         pingService.add(pingUrl);
         appUsr.get().setCountUrl(appUsr.get().getCountUrl() + 1);
+        Cache cache1 = cacheManager.getCache("users");
+        if(cache1 != null) cache1.put(auth.getName(),  appUsr.get());
         userRepo.save(appUsr.get());
     }
     @Transactional
@@ -138,6 +140,8 @@ public class AppUserService implements UserDetailsService {
         Cache cache = cacheManager.getCache("urls");
         if(cache != null) cache.evict(auth.getName());
         appUsr.get().setCountUrl(appUsr.get().getCountUrl() - 1);
+        Cache cache1 = cacheManager.getCache("users");
+        if(cache1 != null) cache1.put(auth.getName(), appUsr.get());
         url.get().setActive(false);
         userRepo.save(appUsr.get());
         pingUrlRepo.delete(url.get());

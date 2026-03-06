@@ -32,6 +32,7 @@ public class PingService {
     private int appNThreads;
     private final ConcurrentHashMap<Long, Boolean> previousPingFailed = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
+    private LocalDateTime nextTime;
     public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         List<PingUrl> pings = repo.findAllByActiveTrue();
@@ -44,6 +45,7 @@ public class PingService {
     }
     @Scheduled(fixedDelayString = "${app.ping.fixDelay}")
     public void pingNow() {
+        nextTime = LocalDateTime.now().plusMinutes(10);
         for(PingUrl url : pingUrls) {
             ping(url);
         }
