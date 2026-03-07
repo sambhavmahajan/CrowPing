@@ -4,12 +4,11 @@ import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -35,6 +34,8 @@ public class PingService {
     private LocalDateTime nextTime;
     @Value("${app.baseurl}")
     private String baseUrl;
+    @Value("${app.myemail}")
+    private String myEmail;
     public PingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         List<PingUrl> pings = repo.findAllByActiveTrue();
@@ -44,6 +45,12 @@ public class PingService {
         this.exe = exe;
         this.emailService = emailService;
         this.pingUrlRepo = pingUrlRepo;
+    }
+    @PostConstruct
+    public void sendNotification() {
+        this.emailService.sendEmail(
+                myEmail, "Crow Ping Up", "Crow ping is up"
+        );
     }
     @Scheduled(fixedDelayString = "${app.ping.fixDelay}")
     public void pingNow() {
