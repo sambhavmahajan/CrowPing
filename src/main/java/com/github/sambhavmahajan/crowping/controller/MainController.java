@@ -8,6 +8,7 @@ import com.github.sambhavmahajan.crowping.exception.ConfirmTokenExpiredException
 import com.github.sambhavmahajan.crowping.repo.ConfirmTokenRepo;
 import com.github.sambhavmahajan.crowping.security.ConfirmToken;
 import com.github.sambhavmahajan.crowping.service.AppUserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -26,7 +27,8 @@ public class MainController {
     private final EmailService emailService;
     private final ConfirmTokenRepo confirmTokenRepo;
     private final CacheManager cacheManager;
-
+    @Value("${app.baseurl}")
+    private String baseUrl;
     public MainController(AppUserService appUserService, EmailService emailService, ConfirmTokenRepo confirmTokenRepo,  CacheManager cacheManager) {
         this.appUserService = appUserService;
         this.emailService = emailService;
@@ -57,7 +59,7 @@ public class MainController {
             redirectAttributes.addFlashAttribute("message", "User registered successfully! Please verify your email.");
             ConfirmToken token = new ConfirmToken(UUID.randomUUID().toString(), usr.getEmail());
             confirmTokenRepo.save(token);
-            emailService.sendEmail(usr.getEmail(), "Email Verification", token.getToken());
+            emailService.sendEmail(usr.getEmail(), "Email Verification", baseUrl + "/verify/" + token.getToken());
         } catch (RuntimeException ex) {
             model.addAttribute("message", ex.getMessage());
             model.addAttribute("bgcolor", "#ff6347;");
