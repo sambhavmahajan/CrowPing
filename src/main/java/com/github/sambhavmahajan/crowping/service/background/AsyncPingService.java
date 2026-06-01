@@ -78,22 +78,27 @@ public class AsyncPingService {
         if(cache != null) cache.evict(url.getOwnerEmail());
         final boolean finalIsFailed = isFailed;
         exe.submit(() -> {
-            Optional<PingLog> toDel = pingLogRepo.findByOwnerEmailAndUrl(url.getOwnerEmail(), pingLog.getUrl());
-            if(toDel.isPresent()) pingLogRepo.delete(toDel.get());
-            pingLogRepo.save(pingLog);
-            String log = pingLog.getMessage();
-            char ch = pingLog.getMessage().charAt('0');
+            Optional<PingLog> oldPing = pingLogRepo.findByOwnerEmailAndUrl(url.getOwnerEmail(), pingLog.getUrl());
+            final PingLog currentLog;
+            if(oldPing.isPresent()) {
+                oldPing.get().setMessage(pingLog.getMessage());
+                oldPing.get().setTimestamp(pingLog.getTimestamp());
+                pingLogRepo.save(oldPing.get());
+                currentLog = oldPing.get();
+                //pingLogRepo.delete(toDel.get());
+            }
+            else {
+                pingLogRepo.save(pingLog);
+                currentLog = pingLog;
+            }
+            String log = currentLog.getMessage();
+            char ch = currentLog.getMessage().charAt('0');
             if(previousPingFailed.containsKey(url.getId()) && previousPingFailed.get(url.getId()) == true && !(finalIsFailed)) {
-                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Up " + log, pingLog.getUrl());
+                emailService.sendEmail(currentLog.getOwnerEmail(), "Site Up " + log, currentLog.getUrl());
             } else if(finalIsFailed) {
-                emailService.sendEmail(pingLog.getOwnerEmail(), "Site Down " + log, pingLog.getUrl());
+                emailService.sendEmail(currentLog.getOwnerEmail(), "Site Down " + log, currentLog.getUrl());
             }
             previousPingFailed.put(url.getId(), finalIsFailed);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
-            }
         });
     }
     @Async
