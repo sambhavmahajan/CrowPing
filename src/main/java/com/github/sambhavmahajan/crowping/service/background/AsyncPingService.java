@@ -11,6 +11,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
@@ -60,7 +61,7 @@ public class AsyncPingService {
         String response = "200";
         boolean isFailed = false;
         try {
-            response = restTemplate.getForEntity(url.getUrl(), String.class).getStatusCode().toString();
+            var res = restTemplate.headForHeaders(url.getUrl());
         } catch(HttpClientErrorException | HttpServerErrorException ex) {
             response = ex.getStatusCode().toString();
             isFailed = true;
