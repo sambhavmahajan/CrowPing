@@ -1,5 +1,5 @@
 # CrowPing
-This application prevents your webapp from going into cold start restart. Asks for your email and some password you very your email, then you can insert your uri, which will be pinged(a head request) each time every EXECUTOR_FIXDELAY(a cron expression). You can have atmost PING_LIMIT active URIs. If the ping fails, CrowPing automatically notifies the user, and when it gets up again, user is notified as well.
+This application prevents your webapp from going into cold start restart. Asks for your email and some password you very your email, then you can insert your uri, which will be pinged(a head request) each time every EXECUTOR_FIXDELAY. You can have atmost PING_LIMIT active URIs. If the ping fails, CrowPing automatically notifies the user, and when it gets up again, user is notified as well.
 ## Requirements
 * Java 21
 * Springboot 4.0.3
@@ -40,7 +40,7 @@ mvn spring-boot:run
 OR
 ```
 docker build -t crowping:latest .
-docker run -it -p <PORT>:<PORT> simpleforums
+docker run -it -p <PORT>:<PORT> crowping
 ```
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss your proposed changes.
