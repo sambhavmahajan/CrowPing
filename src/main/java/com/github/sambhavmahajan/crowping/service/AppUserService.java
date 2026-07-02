@@ -14,7 +14,6 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
@@ -159,8 +158,8 @@ public class AppUserService implements UserDetailsService {
     public List<PingLog> getPingLogsByEmail(String email) throws RuntimeException {
         return pingLogRepo.findAllByOwnerEmail(email);
     }
-    @CacheEvict(value="users", key="#appUser.email")
-    public void resaveUser(AppUser appUser) {
-        userRepo.save(appUser);
+    @CachePut(value="users", key="#appUser.email")
+    public AppUser resaveUser(AppUser appUser) {
+        return userRepo.save(appUser);
     }
 }
