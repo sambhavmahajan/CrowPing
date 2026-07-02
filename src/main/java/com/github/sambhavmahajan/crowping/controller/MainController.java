@@ -67,6 +67,10 @@ public class MainController {
         }
         return "redirect:/login";
     }
+    @GetMapping
+    public String defaultPage() {
+        return "home";
+    }
     @GetMapping("/home")
     public String home() {
         return "home";

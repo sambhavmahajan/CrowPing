@@ -9,6 +9,7 @@ import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.exception.MaxPingLimitExceededException;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
 import com.github.sambhavmahajan.crowping.service.AppUserService;
+import com.github.sambhavmahajan.crowping.service.background.PingService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -26,11 +27,13 @@ public class DashboardController {
     private final AppUserService appUserService;
     private final PingUrlRepo pingUrlRepo;
     private final PasswordEncoder passwordEncoder;
+    private final PingService pingService;
 
-    public DashboardController(AppUserService appUserService, PingUrlRepo pingUrlRepo, PasswordEncoder passwordEncoder) {
+    public DashboardController(AppUserService appUserService, PingUrlRepo pingUrlRepo, PasswordEncoder passwordEncoder, PingService pingService) {
         this.appUserService = appUserService;
         this.pingUrlRepo = pingUrlRepo;
         this.passwordEncoder = passwordEncoder;
+        this.pingService = pingService;
     }
     @GetMapping
     public String dashboard(Model model, Authentication authentication) {
@@ -39,6 +42,7 @@ public class DashboardController {
         model.addAttribute("pingUrls", pingUrls);
         List<PingLog> logs = appUserService.getPingLogsByEmail(authentication.getName());
         model.addAttribute("logs", logs);
+        model.addAttribute("nextTime", "Next Ping At: ".concat(pingService.getNextTime().toString().substring(0, 16)));
         return "dashboard";
     }
     @PostMapping("/createurl")
