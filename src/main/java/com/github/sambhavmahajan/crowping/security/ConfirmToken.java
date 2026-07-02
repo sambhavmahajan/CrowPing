@@ -20,11 +20,11 @@ public class ConfirmToken {
     private String userEmail;
     private LocalDateTime expiryDate;
     private boolean verified;
-    public  ConfirmToken(String token, String userEmail) {
+    public ConfirmToken(String token, String userEmail) {
         this.token = token;
         this.userEmail = userEmail;
         this.expiryDate = LocalDateTime.now().plusDays(1);
-        verified = false;
+        verified = true;
     }
     public boolean confirm() throws RuntimeException {
         if(verified) {
