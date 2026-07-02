@@ -25,7 +25,7 @@ public class AppUser implements UserDetails {
     private String password;
     private String role;
     private int countUrl;
-    private boolean enabled = false;
+    private boolean enabled = true;
     public AppUser(String email, String password, String role) {
         this.email = email;
         this.password = password;
