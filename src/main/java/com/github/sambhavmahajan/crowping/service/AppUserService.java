@@ -4,7 +4,7 @@ import com.github.sambhavmahajan.crowping.dto.PingDTO;
 import com.github.sambhavmahajan.crowping.entity.AppUser;
 import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.exception.*;
-import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
+import com.github.sambhavmahajan.crowping.service.background.PingLogRepoProxy;
 import com.github.sambhavmahajan.crowping.service.background.PingService;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
 import com.github.sambhavmahajan.crowping.repo.AppUserRepo;
@@ -32,11 +32,11 @@ public class AppUserService implements UserDetailsService {
     private final PingService pingService;
     private final PasswordEncoder passwordEncoder;
     private final PingUrlRepo pingUrlRepo;
-    private final PingLogRepo pingLogRepo;
+    private final PingLogRepoProxy pingLogRepo;
     private final CacheManager cacheManager;
     @Value(value = "${app.pinglimit}")
     private int pingLimit;
-    public AppUserService(AppUserRepo userRepo, PingService pingService, PasswordEncoder passwordEncoder, PingUrlRepo pingUrlRepo, PingLogRepo pingLogRepo, CacheManager cacheManager) {
+    public AppUserService(AppUserRepo userRepo, PingService pingService, PasswordEncoder passwordEncoder, PingUrlRepo pingUrlRepo, PingLogRepoProxy pingLogRepo, CacheManager cacheManager) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.pingService = pingService;
@@ -154,7 +154,6 @@ public class AppUserService implements UserDetailsService {
     public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         return userRepo.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-    @Cacheable(value="logs", key="#email")
     public List<PingLog> getPingLogsByEmail(String email) throws RuntimeException {
         return pingLogRepo.findAllByOwnerEmail(email);
     }

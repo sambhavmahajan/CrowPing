@@ -3,7 +3,6 @@ package com.github.sambhavmahajan.crowping.service.background;
 import com.github.sambhavmahajan.crowping.email.EmailService;
 import com.github.sambhavmahajan.crowping.entity.PingLog;
 import com.github.sambhavmahajan.crowping.entity.PingUrl;
-import com.github.sambhavmahajan.crowping.repo.PingLogRepo;
 import com.github.sambhavmahajan.crowping.repo.PingUrlRepo;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -11,7 +10,6 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
@@ -27,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 public class AsyncPingService {
     @Getter
     private final CopyOnWriteArrayList<PingUrl> pingUrls;
-    private final PingLogRepo pingLogRepo;
+    private final PingLogRepoProxy pingLogRepo;
     private final RestTemplate restTemplate;
     private final ExecutorService exe;
     private final EmailService emailService;
@@ -39,7 +37,7 @@ public class AsyncPingService {
     private LocalDateTime nextTime;
     @Value("${app.myemail}")
     private String myEmail;
-    public AsyncPingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepo pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
+    public AsyncPingService(PingUrlRepo repo, RestTemplate restTemplate, PingLogRepoProxy pingLogRepo, ExecutorService exe, EmailService emailService, PingUrlRepo pingUrlRepo, CacheManager cacheManager) {
         this.cacheManager = cacheManager;
         List<PingUrl> pings = repo.findAllByActiveTrue();
         pingUrls = new CopyOnWriteArrayList<>(pings);
@@ -70,7 +68,7 @@ public class AsyncPingService {
             isFailed = true;
         }
         LocalDateTime now = LocalDateTime.now();
-        PingLog pingLog = new PingLog();
+        final PingLog pingLog = new PingLog();
         pingLog.setUrl(url.getUrl());
         pingLog.setTimestamp(now);
         pingLog.setMessage(response);
@@ -93,7 +91,7 @@ public class AsyncPingService {
                 currentLog = pingLog;
             }
             String log = currentLog.getMessage();
-            char ch = currentLog.getMessage().charAt('0');
+            char ch = currentLog.getMessage().charAt(0);
             if(previousPingFailed.containsKey(url.getId()) && previousPingFailed.get(url.getId()) == true && !(finalIsFailed)) {
                 emailService.sendEmail(currentLog.getOwnerEmail(), "Site Up " + log, currentLog.getUrl());
             } else if(finalIsFailed) {
@@ -106,7 +104,11 @@ public class AsyncPingService {
     public void add(PingUrl url) {
         pingUrls.add(url);
         exe.submit(() -> {
-            pingUrlRepo.save(url);
+            try {
+                pingUrlRepo.save(url);
+            } catch(Exception ex) {
+                System.out.println(ex.getMessage());
+            }
         });
     }
     @PreDestroy

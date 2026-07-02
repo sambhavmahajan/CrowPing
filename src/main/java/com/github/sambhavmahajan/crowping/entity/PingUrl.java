@@ -19,4 +19,16 @@ public class PingUrl {
         this.url = dto.getUrl();
         this.ownerEmail =  ownerEmail;
     }
+    @Override
+    public int hashCode() {
+        int ret = 131*ownerEmail.hashCode();
+        ret += 31*url.hashCode();
+        return ret;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof PingUrl)) return false;
+        if(!ownerEmail.equals(((PingUrl) obj).getOwnerEmail())) return false;
+        return url.equals(((PingUrl) obj).getUrl());
+    }
 }

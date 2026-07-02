@@ -20,4 +20,18 @@ public class PingLog {
     private String url;
     private LocalDateTime timestamp;
     private String ownerEmail;
+    @Override
+    public int hashCode() {
+        return 131*url.hashCode() +
+                31*message.hashCode() + 7*timestamp.hashCode()
+                + ownerEmail.hashCode();
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof PingLog)) return false;
+        if(!(message.equals(((PingLog) obj).getOwnerEmail()))) return false;
+        if(!(url.equals(((PingLog) obj).url))) return false;
+        if(!(timestamp.equals(((PingLog) obj).timestamp))) return false;
+        return ownerEmail.equals(((PingLog) obj).getOwnerEmail());
+    }
 }
