@@ -15,7 +15,7 @@ public class CleanupService {
     public CleanupService(ConfirmTokenRepo repo) {
         this.repo = repo;
     }
-    @Scheduled(fixedDelay = 86400000)
+    @Scheduled(cron = "0 0 0 1 * ?")
     @Transactional
     public void cleanup() {
         LocalDateTime now = LocalDateTime.now();
