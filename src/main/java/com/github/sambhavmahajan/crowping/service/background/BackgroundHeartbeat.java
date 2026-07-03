@@ -14,6 +14,7 @@ public class BackgroundHeartbeat {
     public BackgroundHeartbeat(ConfirmTokenRepo repo) {
         this.repo = repo;
     }
+    /*
     @Scheduled(fixedDelay = 210000)
     public void heartBeat() {
         try {
@@ -26,4 +27,5 @@ public class BackgroundHeartbeat {
             System.out.println("heartbeat failed");
         }
     }
+    */
 }
