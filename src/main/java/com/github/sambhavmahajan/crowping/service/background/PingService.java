@@ -25,4 +25,7 @@ public class PingService {
             asyncPingService.ping(url);
         }
     }
+    public int countPings() {
+        return asyncPingService.getTotalPings();
+    }
 }

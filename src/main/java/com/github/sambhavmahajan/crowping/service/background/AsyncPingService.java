@@ -115,4 +115,7 @@ public class AsyncPingService {
     public void stop() {
         exe.shutdown();
     }
+    public int getTotalPings() {
+        return pingUrls.size();
+    }
 }

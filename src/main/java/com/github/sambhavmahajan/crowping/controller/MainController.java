@@ -8,6 +8,7 @@ import com.github.sambhavmahajan.crowping.exception.ConfirmTokenExpiredException
 import com.github.sambhavmahajan.crowping.repo.ConfirmTokenRepo;
 import com.github.sambhavmahajan.crowping.security.ConfirmToken;
 import com.github.sambhavmahajan.crowping.service.AppUserService;
+import com.github.sambhavmahajan.crowping.service.background.PingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -27,16 +28,18 @@ public class MainController {
     private final EmailService emailService;
     private final ConfirmTokenRepo confirmTokenRepo;
     private final CacheManager cacheManager;
+    private final PingService pingService;
     @Value("${app.baseurl}")
     private String baseUrl;
-    public MainController(AppUserService appUserService, EmailService emailService, ConfirmTokenRepo confirmTokenRepo,  CacheManager cacheManager) {
+    public MainController(AppUserService appUserService, EmailService emailService, ConfirmTokenRepo confirmTokenRepo,  CacheManager cacheManager, PingService pingService) {
         this.appUserService = appUserService;
         this.emailService = emailService;
         this.confirmTokenRepo = confirmTokenRepo;
         this.cacheManager = cacheManager;
+        this.pingService = pingService;
     }
     @GetMapping("/login")
-    public String login(Authentication auth) {
+    public String login(Authentication auth, Model model) {
         if(auth != null && !(auth instanceof AnonymousAuthenticationToken) && auth.isAuthenticated()) {
             return "redirect:/dashboard";
         }
@@ -68,11 +71,13 @@ public class MainController {
         return "redirect:/login";
     }
     @GetMapping
-    public String defaultPage() {
+    public String defaultPage(Model model) {
+        model.addAttribute("totalPings", pingService.countPings());
         return "home";
     }
     @GetMapping("/home")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("totalPings", pingService.countPings());
         return "home";
     }
     @GetMapping("/ping")
