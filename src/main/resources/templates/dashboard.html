@@ -17,7 +17,7 @@
     <input th:field="*{url}" placeholder="url" id="new ping text" name="url"/>
     <input type="submit" value="Create new Ping"/>
 </form>
-<label th:text="${nextTime}"></label>
+<label th:text="${nextTime} + ' UTC'"></label>
 <div th:each="url : ${pingUrls}">
     <form method="post" th:action="@{/dashboard/deleteurl}">
         <input type="hidden" name="_method" value="DELETE"/>
@@ -175,7 +175,7 @@
             <tr th:each="log : ${logs}">
                 <td><span class="due-date" th:text="${log.getUrl()}"></span></td>
                 <td><span class="due-date" th:text="${log.getMessage()}"></span></td>
-                <td><span class="due-date" th:text="${log.getTimestamp().toString().substring(0, 16)}"></span></td>
+                <td><span class="due-date" th:text="${log.getTimestamp().toString().substring(0, 16)} + ' UTC'"></span></td>
             </tr>
         </tbody>
     </table>
